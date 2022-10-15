@@ -206,25 +206,25 @@ for train_index, test_index in kf.split(merged):
     #Function to fit models
     def fitrandomforests(n_est,maxfeat,minleaf):
         
-        #names for variables based on inputs
-        varname= "pred_nest%s_feat%s_leaf%s" % (n_est,maxfeat,minleaf)
-        varname2= "pred_down_nest%s_feat%s_leaf%s" % (n_est,maxfeat,minleaf)
-        
-        #Fit a Random Forest model
-        rf=RandomForestClassifier(n_estimators=n_est,
-                                  max_features=maxfeat,
-                                  min_samples_leaf=minleaf)
-        rf.fit(X_train,y_train)
-        preds=rf.predict_proba(X_test)[:,1]
-        merged_test[varname]=preds
-        
-        #Fit a Random Forest model on downsampled data
-        rfd=RandomForestClassifier(n_estimators=n_est,
-                                   max_features=maxfeat,
-                                   min_samples_leaf=minleaf)
-        rfd.fit(X_train_downsampled,y_train_downsampled)
-        predsd=rfd.predict_proba(X_test)[:,1]
-        merged_test[varname2]=predsd
+                                    #names for variables based on inputs
+                                varname = f"pred_nest{n_est}_feat{maxfeat}_leaf{minleaf}"
+                                varname2 = f"pred_down_nest{n_est}_feat{maxfeat}_leaf{minleaf}"
+
+                                #Fit a Random Forest model
+                                rf=RandomForestClassifier(n_estimators=n_est,
+                                                          max_features=maxfeat,
+                                                          min_samples_leaf=minleaf)
+                                rf.fit(X_train,y_train)
+                                preds=rf.predict_proba(X_test)[:,1]
+                                merged_test[varname]=preds
+
+                                #Fit a Random Forest model on downsampled data
+                                rfd=RandomForestClassifier(n_estimators=n_est,
+                                                           max_features=maxfeat,
+                                                           min_samples_leaf=minleaf)
+                                rfd.fit(X_train_downsampled,y_train_downsampled)
+                                predsd=rfd.predict_proba(X_test)[:,1]
+                                merged_test[varname2]=predsd
     
         
         
@@ -260,20 +260,20 @@ merged_pred=merged_pred.dropna()
 #View AUC
 
 for feat in maxfeatgrid:
-    for leaf in minleafgrid:
-        #Random forest for given tuning parameters
-        varname1="pred_nest50_feat%s_leaf%s" % (feat,leaf)
-        rocscore1=roc_auc_score(merged_pred['went_on_backorder'],merged_pred[varname1])
-        print( round(rocscore1,4 ) , varname1 )
-        #Down Sampled Random Forest for given tuning parameters
-        varname2="pred_down_nest50_feat%s_leaf%s" % (feat,leaf)
-        rocscore2=roc_auc_score(merged_pred['went_on_backorder'],merged_pred[varname2])
-        print( round(rocscore2,4) , varname2 )
+                            for leaf in minleafgrid:
+                                                                #Random forest for given tuning parameters
+                                                        varname1 = f"pred_nest50_feat{feat}_leaf{leaf}"
+                                                        rocscore1=roc_auc_score(merged_pred['went_on_backorder'],merged_pred[varname1])
+                                                        print( round(rocscore1,4 ) , varname1 )
+                                                                #Down Sampled Random Forest for given tuning parameters
+                                                        varname2 = f"pred_down_nest50_feat{feat}_leaf{leaf}"
+                                                        rocscore2=roc_auc_score(merged_pred['went_on_backorder'],merged_pred[varname2])
+                                                        print( round(rocscore2,4) , varname2 )
 
 #ROC Curves
 
 #Define false positive rates/true positive rates / thresholds
-        
+
 #Best random forest model
 fpr, tpr, thresholds =roc_curve(merged_pred['went_on_backorder'],merged_pred['pred_nest50_feat3_leaf5'])
 #Best down sampled random forest model
@@ -317,8 +317,6 @@ plt.xlabel('Threshold')
 
 
 
-#Consider the model in more depth
-    #---------------------------------------------------------------#
 #Optimal Threshold
 #For example: threshold of 0.05 gives precision of 17% and recall of 78%
 precision[1:][abs(threshold-0.05)<.00000025]
@@ -350,12 +348,13 @@ rf.fit(X,y)
 list(zip(list(X),rf.feature_importances_))
 importance = rf.feature_importances_
 importance = pd.DataFrame(importance, index=X.columns,columns=["Importance"])
-importance["Std"] = np.std([rf.feature_importances_ for tree in rf.estimators_], axis=0)
+importance["Std"] = np.std([rf.feature_importances_ for _ in rf.estimators_],
+                           axis=0)
 importance=importance.sort_values(['Importance'],ascending=False)
 
 #plot importances
 xlim = range(importance.shape[0])
 plt.bar(xlim, importance['Importance'], yerr=importance['Std'], align="center")
-plt.xticks(range(0,22), importance.index,rotation=90)
+plt.xticks(range(22), importance.index, rotation=90)
 plt.show()
 
